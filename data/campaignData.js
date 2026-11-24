@@ -1,4 +1,4 @@
-// Dados estruturados da campanha JOGANDO SUJO — Evento Anual de Outubro • Porto Alegre / ODS 6
+// Dados estruturados da campanha JOGANDO SUJO — Evento Anual de Outubro • Porto Alegre / Lago Guaíba
 
 window.CampaignData = {
   initialScores: {
@@ -245,7 +245,6 @@ window.CampaignData = {
     { name: 'DMLU', subtitle: 'Limpeza Urbana' },
     { name: 'DMAE', subtitle: 'Água e Esgotos' },
     { name: 'Prefeitura de Porto Alegre', subtitle: 'Apoio Institucional' },
-    { name: 'ODS 6', subtitle: 'Água Potável e Saneamento' },
     { name: 'RBS', subtitle: 'Mídia & Comunicação' },
     { name: 'Banrisul', subtitle: 'Parceiro Regional' },
     { name: 'Adidas', subtitle: 'Material Esportivo' },

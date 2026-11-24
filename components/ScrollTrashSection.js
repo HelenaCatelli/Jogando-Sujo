@@ -136,14 +136,16 @@
           />
 
           <!-- Z-20 Transparent Editorial Typography -->
-          <div className="relative z-20 max-w-4xl mx-auto px-6 py-12 text-center flex flex-col items-center bg-transparent">
+          <div className="relative z-20 max-w-5xl mx-auto px-6 py-12 text-center flex flex-col items-center bg-transparent">
             <${DotMatrixIcon} className="w-5 h-5 text-[#F5F7FA] mb-6 opacity-95" accent=${accentColor} />
 
             <h2
-              className="font-display font-bold uppercase tracking-tight leading-[0.98] text-3xl sm:text-5xl lg:text-6xl text-[#F5F7FA]"
+              className="font-display font-bold uppercase tracking-tight leading-[1.02] text-3xl sm:text-5xl lg:text-[3.5rem] text-[#F5F7FA]"
               style=${{ textShadow: '0 4px 24px rgba(0, 0, 0, 0.85)' }}
             >
-              NÃO PRECISAMOS DE MAIS UM PROJETO DE CONSCIENTIZAÇÃO.
+              TIRE O LIXO DE FORA DO CAMPO,
+              <br />
+              JOGUE NO LIXO DO SEU RIVAL.
             </h2>
 
             <p

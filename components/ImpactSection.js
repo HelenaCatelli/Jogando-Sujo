@@ -1,20 +1,15 @@
-// Section 8A — Asymmetric 2-Column Editorial: "SOBRE O PROJETO" (ODS 6) & "SOBRE NÓS"
+// Section 8A — Asymmetric 2-Column Editorial: "SOBRE O PROJETO" & "SOBRE NÓS"
 
 (function () {
   const html = window.htm.bind(React.createElement);
   const { DotMatrixIcon } = window.AppIcons;
   const { founders } = window.CampaignData;
 
-  function ImpactSection({ totalKg }) {
-    const tons = (totalKg / 1000).toLocaleString('pt-BR', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    });
-
+  function ImpactSection() {
     const metrics = [
-      { value: `${tons} t`, label: 'Toneladas impedidas de chegar ao Guaíba' },
-      { value: '24', label: 'Pontos inteligentes em Porto Alegre' },
-      { value: '98%', label: 'Destinados a cooperativas e reciclagem' },
+      { value: '31 DIAS', label: 'Duração do clássico fora de campo em outubro' },
+      { value: '24', label: 'Pontos inteligentes por Porto Alegre' },
+      { value: '100%', label: 'Destino direto para cooperativas e reciclagem' },
     ];
 
     return html`
@@ -24,12 +19,12 @@
       >
         <div className="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-start">
-            <!-- LEFT COLUMN: Manifesto Sobre o Projeto + ODS 6 -->
+            <!-- LEFT COLUMN: Manifesto Sobre o Projeto -->
             <div className="lg:col-span-7">
               <div className="flex items-center gap-2.5 mb-4">
                 <${DotMatrixIcon} className="w-4 h-4 text-[#F5F7FA]" accent="#0099FF" />
                 <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#8B95A5]">
-                  SOBRE O PROJETO • ODS 6 (ÁGUA POTÁVEL E SANEAMENTO)
+                  SOBRE O PROJETO • PORTO ALEGRE & LAGO GUAÍBA
                 </span>
               </div>
 
@@ -45,11 +40,11 @@
                   O Jogando Sujo parte de uma verdade crua: <span className="text-[#F5F7FA] font-medium">lixo é sujo, ninguém quer por perto e ninguém aguenta ver espalhado pela cidade.</span> Por isso, em vez de premiar o clube “mais limpo”, viramos o jogo do avesso. Todo mês de outubro, colocamos réplicas inteligentes da Arena e do Beira-Rio nas ruas para que cada torcida tire o lixo do chão e despeje no estádio rival.
                 </p>
                 <p className="text-[#F5F7FA]">
-                  No final do mês, o clube com a lixeira mais cheia leva o título de Time Mais Sujo do Ano. A rivalidade faz o trabalho pesado; os sensores garantem a transparência; e o único vencedor real — com toneladas de resíduos impedidas de chegar às águas — é o Lago Guaíba.
+                  No final do mês, o clube com a lixeira mais cheia leva o título de Time Mais Sujo do Ano. A rivalidade faz o trabalho pesado; os sensores garantem a transparência; e o único vencedor real — com toneladas de lixo fora das águas — é o Lago Guaíba.
                 </p>
               </div>
 
-              <!-- 3 ODS 6 Metrics in Open Hairline Strip -->
+              <!-- 3 Impact Metrics in Open Hairline Strip -->
               <div className="mt-12 pt-8 border-t border-white/[0.12] grid grid-cols-1 sm:grid-cols-3 gap-8">
                 ${metrics.map(
                   (m) => html`

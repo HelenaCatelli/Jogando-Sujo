@@ -1,4 +1,4 @@
-// First Fold (100vh) — Giant Centered Stadium Scoreboard Countdown + Subtle Gre-Nal Split Glow + Particles + Marquee
+// First Fold (100vh) — 3D Mechanical Split-Flap Stadium Scoreboard + Particles + Marquee
 
 (function () {
   const html = window.htm.bind(React.createElement);
@@ -58,67 +58,136 @@
     };
   }
 
-  // Smooth vertical roll/flip digit block inside overflow-hidden wrapper (zero layout jitter)
-  function ScoreboardBlock({ value, label }) {
-    const prevRef = useRef(value);
-    const [transition, setTransition] = useState({ current: value, previous: null, tick: 0 });
+  // Individual Mechanical Split-Flap Digit Plate with 2-stage 3D rotateX fall (~450ms)
+  function SplitFlapDigit({ digit }) {
+    const prevDigitRef = useRef(digit);
+    const timerRef = useRef(null);
+    const [flap, setFlap] = useState({
+      current: digit,
+      previous: digit,
+      flipping: false,
+      tick: 0,
+    });
 
     useEffect(() => {
-      if (value !== prevRef.current) {
-        const oldVal = prevRef.current;
-        prevRef.current = value;
-        setTransition((prev) => ({
-          current: value,
-          previous: oldVal,
+      if (digit !== prevDigitRef.current) {
+        const oldDigit = prevDigitRef.current;
+        prevDigitRef.current = digit;
+
+        if (timerRef.current) clearTimeout(timerRef.current);
+        setFlap((prev) => ({
+          current: digit,
+          previous: oldDigit,
+          flipping: true,
           tick: prev.tick + 1,
         }));
+
+        timerRef.current = setTimeout(() => {
+          setFlap((prev) => ({
+            ...prev,
+            previous: prev.current,
+            flipping: false,
+          }));
+        }, 470);
       }
-    }, [value]);
+    }, [digit]);
+
+    useEffect(() => {
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
+    }, []);
+
+    const numStyle = { fontSize: 'clamp(3.2rem, 8.5vw, 7.2rem)' };
 
     return html`
-      <div className="flex flex-col items-center">
-        <div className="relative overflow-hidden px-1 sm:px-2">
-          <!-- Invisible static spacer preserving exact width/height -->
+      <div
+        className="flap-perspective relative select-none rounded-lg bg-[#0C0E11] border border-white/[0.08] border-b-[3px] border-b-[#030406] shadow-[0_14px_30px_rgba(0,0,0,0.78)] overflow-hidden"
+        style=${{ width: 'clamp(2.55rem, 6.2vw, 5.15rem)', height: 'clamp(3.9rem, 9.8vw, 8.1rem)' }}
+      >
+        <!-- Layer 1: Static Upper Half (NEW digit revealed as old top falls) -->
+        <div className="absolute inset-x-0 top-0 h-1/2 overflow-hidden bg-[#121418] border-b border-black/40 z-10">
           <span
-            className="block invisible font-display font-extrabold tabular-nums tracking-tight leading-[0.92] select-none"
-            style=${{ fontSize: 'clamp(3.25rem, 11vw, 9.5rem)' }}
-            aria-hidden="true"
+            className="font-flap font-extrabold tabular-nums text-[#F5F7FA] leading-none absolute inset-x-0 top-0 h-[200%] flex items-center justify-center"
+            style=${numStyle}
           >
-            ${transition.current}
+            ${flap.current}
           </span>
-
-          <!-- Outgoing previous digit sliding up -->
-          ${transition.previous !== null &&
-          html`
-            <span
-              key=${`out-${transition.tick}`}
-              className="animate-digit-out absolute inset-0 flex items-center justify-center font-display font-extrabold tabular-nums tracking-tight leading-[0.92] text-[#F5F7FA] pointer-events-none"
-              style=${{ fontSize: 'clamp(3.25rem, 11vw, 9.5rem)' }}
-              aria-hidden="true"
-            >
-              ${transition.previous}
-            </span>
-          `}
-
-          <!-- Incoming current digit sliding in from below -->
-          <span
-            key=${`in-${transition.tick}`}
-            className=${`${
-              transition.tick > 0 ? 'animate-digit-in' : ''
-            } absolute inset-0 flex items-center justify-center font-display font-extrabold tabular-nums tracking-tight leading-[0.92] text-[#F5F7FA]`}
-            style=${{ fontSize: 'clamp(3.25rem, 11vw, 9.5rem)' }}
-          >
-            ${transition.current}
-          </span>
-
-          <!-- Subtle 1px stadium split-flap horizontal seam across middle of numbers -->
-          <div
-            className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#07080A]/75 border-b border-white/[0.1]"
-            aria-hidden="true"
-          />
         </div>
 
-        <span className="mt-2 sm:mt-3 text-[10px] sm:text-xs font-medium tracking-[0.25em] uppercase text-[#8B95A5]">
+        <!-- Layer 2: Static Lower Half (OLD digit until bottom flap lands) -->
+        <div className="absolute inset-x-0 bottom-0 h-1/2 overflow-hidden bg-[#0C0E11] z-10">
+          <span
+            className="font-flap font-extrabold tabular-nums text-[#F5F7FA] leading-none absolute inset-x-0 bottom-0 h-[200%] flex items-center justify-center"
+            style=${numStyle}
+          >
+            ${flap.flipping ? flap.previous : flap.current}
+          </span>
+        </div>
+
+        <!-- Layer 3: Falling Top Flap (OLD digit rotates 0 -> -90deg in 225ms) -->
+        ${flap.flipping &&
+        html`
+          <div
+            key=${`top-${flap.tick}`}
+            className="flap-card-3d animate-flap-top absolute inset-x-0 top-0 h-1/2 overflow-hidden bg-[#121418] z-20"
+          >
+            <span
+              className="font-flap font-extrabold tabular-nums text-[#F5F7FA] leading-none absolute inset-x-0 top-0 h-[200%] flex items-center justify-center"
+              style=${numStyle}
+            >
+              ${flap.previous}
+            </span>
+            <div className="animate-flap-top-shade pointer-events-none absolute inset-0 bg-black opacity-0" />
+          </div>
+        `}
+
+        <!-- Layer 4: Landing Bottom Flap (NEW digit rotates 90 -> 0deg from 225ms to 450ms) -->
+        ${flap.flipping &&
+        html`
+          <div
+            key=${`bot-${flap.tick}`}
+            className="flap-card-3d animate-flap-bottom absolute inset-x-0 bottom-0 h-1/2 overflow-hidden bg-[#0C0E11] z-30"
+          >
+            <span
+              className="font-flap font-extrabold tabular-nums text-[#F5F7FA] leading-none absolute inset-x-0 bottom-0 h-[200%] flex items-center justify-center"
+              style=${numStyle}
+            >
+              ${flap.current}
+            </span>
+            <div className="animate-flap-bottom-shade pointer-events-none absolute inset-0 bg-black" />
+          </div>
+        `}
+
+        <!-- Central 2px Mechanical Split Gap -->
+        <div
+          className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-[#040507] z-40"
+          aria-hidden="true"
+        />
+
+        <!-- Left & Right Discreet Metallic Graphite Hinges (3px x 10px) -->
+        <div
+          className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-[10px] bg-[#2D323D] rounded-r-[1px] z-40"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[10px] bg-[#2D323D] rounded-l-[1px] z-40"
+          aria-hidden="true"
+        />
+      </div>
+    `;
+  }
+
+  function ScoreboardGroup({ valueStr, label }) {
+    const digits = String(valueStr).split('');
+    return html`
+      <div className="flex flex-col items-center">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          ${digits.map(
+            (d, idx) => html`<${SplitFlapDigit} key=${`${label}-${idx}`} digit=${d} />`
+          )}
+        </div>
+        <span className="mt-3 text-[10px] sm:text-xs font-medium tracking-[0.25em] uppercase text-[#8B95A5]">
           ${label}
         </span>
       </div>
@@ -126,13 +195,32 @@
   }
 
   function OpeningHeroSection({ supporter }) {
-    const [countdown, setCountdown] = useState(computeOctoberCountdown);
+    const [introStep, setIntroStep] = useState(0);
+    const [countdown, setCountdown] = useState(() => computeOctoberCountdown());
     const sectionRef = useRef(null);
     const canvasRef = useRef(null);
 
     const isColorado = supporter === 'colorado';
     const accentColor = isColorado ? '#E6192E' : '#0099FF';
 
+    // Rapid cascade entrance (2 short intro flips before locking onto real October countdown)
+    useEffect(() => {
+      const reducedMotion =
+        window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) {
+        setIntroStep(2);
+        return undefined;
+      }
+
+      const t1 = setTimeout(() => setIntroStep(1), 110);
+      const t2 = setTimeout(() => setIntroStep(2), 340);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }, []);
+
+    // Live 1-second Brasília countdown updater
     useEffect(() => {
       const timer = setInterval(() => {
         setCountdown(computeOctoberCountdown());
@@ -274,6 +362,17 @@
       };
     }, []);
 
+    // Cascade values during initial 2-flip startup before locking onto real countdown
+    const displayDays =
+      introStep === 0
+        ? '0'.repeat(countdown.days.length)
+        : introStep === 1
+        ? '8'.repeat(countdown.days.length)
+        : countdown.days;
+    const displayHours = introStep === 0 ? '00' : introStep === 1 ? '48' : countdown.hours;
+    const displayMinutes = introStep === 0 ? '00' : introStep === 1 ? '72' : countdown.minutes;
+    const displaySeconds = introStep === 0 ? '00' : introStep === 1 ? '94' : countdown.seconds;
+
     const marqueeItem = 'JOGANDO SUJO  •  OUTUBRO EM PORTO ALEGRE  •  TIME MAIS SUJO DO ANO  •  ';
 
     return html`
@@ -282,16 +381,16 @@
         ref=${sectionRef}
         className="relative min-h-screen flex flex-col justify-between overflow-hidden bg-[#07080A] pt-24"
       >
-        <!-- Subtle Atmospheric Gre-Nal Split Glow Behind Scoreboard (~12% opacity) -->
+        <!-- Subtle Gre-Nal Split Atmospheric Glow Behind Split-Flap Scoreboard -->
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-1/2 opacity-[0.12] blur-[140px]"
+          className="pointer-events-none absolute inset-y-0 left-0 w-1/2 opacity-[0.11] blur-[140px]"
           style=${{
             background: 'radial-gradient(circle at 38% 48%, #0099FF 0%, transparent 65%)',
           }}
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-[0.12] blur-[140px]"
+          className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-[0.11] blur-[140px]"
           style=${{
             background: 'radial-gradient(circle at 62% 48%, #E6192E 0%, transparent 65%)',
           }}
@@ -305,8 +404,8 @@
           aria-hidden="true"
         />
 
-        <!-- Centered Monumental Stadium Scoreboard -->
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-12 text-center animate-scoreboard-on">
+        <!-- Centered Mechanical Split-Flap Stadium Scoreboard -->
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 py-10 text-center">
           <!-- Eyebrow -->
           <div className="inline-flex items-center gap-2.5 mb-8 sm:mb-10">
             <span className="relative flex h-2 w-2">
@@ -324,49 +423,47 @@
             </span>
           </div>
 
-          <!-- Giant Monumental Scoreboard Countdown (2x2 on narrow mobile, horizontal row on sm+) -->
+          <!-- Split-Flap Units: 2x2 on mobile (DIAS / HORAS top, MIN / SEG bottom), single row on md+ -->
           <div
             role="timer"
             aria-live="off"
-            aria-label="Contagem regressiva para o evento Jogando Sujo em outubro"
-            className="relative w-full flex flex-col items-center"
+            aria-label="Placar mecânico regressivo para outubro em Porto Alegre"
+            className="grid grid-cols-2 gap-x-5 gap-y-7 md:flex md:items-start md:justify-center md:gap-x-5 lg:gap-x-7"
           >
-            <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:flex sm:items-start sm:justify-center sm:gap-x-3 md:gap-x-5 lg:gap-x-7">
-              <${ScoreboardBlock} value=${countdown.days} label="DIAS" />
+            <${ScoreboardGroup} valueStr=${displayDays} label="DIAS" />
 
-              <span
-                className="hidden sm:block animate-colon-pulse font-display font-bold text-[#8B95A5]/65 leading-[0.86] select-none"
-                style=${{ fontSize: 'clamp(2.75rem, 9vw, 8rem)' }}
-                aria-hidden="true"
-              >
-                :
-              </span>
+            <span
+              className="hidden md:block animate-colon-pulse font-flap font-bold text-[#8B95A5]/45 leading-[0.88] select-none self-start pt-1"
+              style=${{ fontSize: 'clamp(2.5rem, 6.5vw, 5.5rem)' }}
+              aria-hidden="true"
+            >
+              :
+            </span>
 
-              <${ScoreboardBlock} value=${countdown.hours} label="HORAS" />
+            <${ScoreboardGroup} valueStr=${displayHours} label="HORAS" />
 
-              <span
-                className="hidden sm:block animate-colon-pulse font-display font-bold text-[#8B95A5]/65 leading-[0.86] select-none"
-                style=${{ fontSize: 'clamp(2.75rem, 9vw, 8rem)' }}
-                aria-hidden="true"
-              >
-                :
-              </span>
+            <span
+              className="hidden md:block animate-colon-pulse font-flap font-bold text-[#8B95A5]/45 leading-[0.88] select-none self-start pt-1"
+              style=${{ fontSize: 'clamp(2.5rem, 6.5vw, 5.5rem)' }}
+              aria-hidden="true"
+            >
+              :
+            </span>
 
-              <${ScoreboardBlock} value=${countdown.minutes} label="MIN" />
+            <${ScoreboardGroup} valueStr=${displayMinutes} label="MIN" />
 
-              <span
-                className="hidden sm:block animate-colon-pulse font-display font-bold text-[#8B95A5]/65 leading-[0.86] select-none"
-                style=${{ fontSize: 'clamp(2.75rem, 9vw, 8rem)' }}
-                aria-hidden="true"
-              >
-                :
-              </span>
+            <span
+              className="hidden md:block animate-colon-pulse font-flap font-bold text-[#8B95A5]/45 leading-[0.88] select-none self-start pt-1"
+              style=${{ fontSize: 'clamp(2.5rem, 6.5vw, 5.5rem)' }}
+              aria-hidden="true"
+            >
+              :
+            </span>
 
-              <${ScoreboardBlock} value=${countdown.seconds} label="SEG" />
-            </div>
+            <${ScoreboardGroup} valueStr=${displaySeconds} label="SEG" />
           </div>
 
-          <!-- Single-Line Subtitle + Clean Underlined CTA -->
+          <!-- Subtitle & Editorial CTA -->
           <p className="mt-10 sm:mt-12 text-sm sm:text-lg text-[#8B95A5] max-w-2xl leading-relaxed">
             A contagem regressiva para definir o time mais sujo do ano.
           </p>
