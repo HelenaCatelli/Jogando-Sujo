@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JOGANDO SUJO — Evento Anual em Porto Alegre | ODS 6</title>
+    <meta
+      name="description"
+      content="Todo mês de outubro em Porto Alegre: tire o lixo das ruas, jogue no estádio rival e ajude a proteger o Lago Guaíba (ODS 6)."
+    />
+
+    <!-- Google Fonts: Plus Jakarta Sans & Inter (Clean Swiss Editorial Sports Typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              editorial: {
+                black: '#07080A',
+                graphite: '#0D1015',
+                white: '#F5F7FA',
+                muted: '#8B95A5',
+                inter: '#E6192E',
+                gremio: '#0099FF',
+              },
+            },
+            fontFamily: {
+              display: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+              sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Custom Editorial & Marquee Stylesheet -->
+    <link rel="stylesheet" href="./styles/theme.css" />
+
+    <!-- Three.js Import Map (OrbitControls + RoomEnvironment + GLTFExporter + STLExporter) -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body class="bg-[#07080A] text-[#F5F7FA] antialiased">
+    <div id="root"></div>
+
+    <!-- React 18 + HTM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js" crossorigin></script>
+
+    <!-- Three.js ES Module Bridge & Procedural 3D Models -->
+    <script type="module" src="./utils/threeLoader.js"></script>
+    <script src="./utils/binModels3D.js"></script>
+
+    <!-- Modular Application Files -->
+    <script src="./data/campaignData.js"></script>
+    <script src="./components/Icons.js"></script>
+    <script src="./components/Navbar.js"></script>
+    <script src="./components/OpeningHeroSection.js"></script>
+    <script src="./components/ScrollTrashSection.js"></script>
+    <script src="./components/StadiumBinVisual.js"></script>
+    <script src="./components/HeroSection.js"></script>
+    <script src="./components/ScoreboardSection.js"></script>
+    <script src="./components/CalendarSection.js"></script>
+    <script src="./components/LocationsSection.js"></script>
+    <script src="./components/ReceiptValidator.js"></script>
+    <script src="./components/RewardsSection.js"></script>
+    <script src="./components/ReceiptModal.js"></script>
+    <script src="./components/ImpactSection.js"></script>
+    <script src="./components/FinalBannerSection.js"></script>
+    <script src="./App.js"></script>
+  </body>
+</html>
