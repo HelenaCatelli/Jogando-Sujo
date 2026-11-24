@@ -1,4 +1,4 @@
-// First Fold (100vh) — Swiss Editorial Sports Hero ("Rivalidade. Sujeira. Guaíba.") + Particles + Compact Countdown + Marquee
+// First Fold (100vh) — Giant Centered Stadium Scoreboard Countdown + Subtle Gre-Nal Split Glow + Particles + Marquee
 
 (function () {
   const html = window.htm.bind(React.createElement);
@@ -31,15 +31,15 @@
     const isOctober = br.month === 10;
 
     let targetUtcMs;
-    let label;
+    let eyebrow;
 
     if (isOctober) {
       targetUtcMs = Date.UTC(br.year, 9, 31, 23, 59, 59);
-      label = 'TEMPORADA ATIVA';
+      eyebrow = 'TEMPORADA ATIVA • OUTUBRO EM PORTO ALEGRE';
     } else {
       const nextYear = br.month > 10 ? br.year + 1 : br.year;
       targetUtcMs = Date.UTC(nextYear, 9, 1, 0, 0, 0);
-      label = 'PRÓXIMA EDIÇÃO • OUTUBRO';
+      eyebrow = 'PRÓXIMA EDIÇÃO • OUTUBRO EM PORTO ALEGRE';
     }
 
     const diffSec = Math.max(0, Math.floor((targetUtcMs - nowUtcMs) / 1000));
@@ -50,9 +50,79 @@
 
     return {
       isOctober,
-      label,
-      formatted: `${String(days).padStart(2, '0')} : ${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`,
+      eyebrow,
+      days: String(days).padStart(2, '0'),
+      hours: String(hours).padStart(2, '0'),
+      minutes: String(minutes).padStart(2, '0'),
+      seconds: String(seconds).padStart(2, '0'),
     };
+  }
+
+  // Smooth vertical roll/flip digit block inside overflow-hidden wrapper (zero layout jitter)
+  function ScoreboardBlock({ value, label }) {
+    const prevRef = useRef(value);
+    const [transition, setTransition] = useState({ current: value, previous: null, tick: 0 });
+
+    useEffect(() => {
+      if (value !== prevRef.current) {
+        const oldVal = prevRef.current;
+        prevRef.current = value;
+        setTransition((prev) => ({
+          current: value,
+          previous: oldVal,
+          tick: prev.tick + 1,
+        }));
+      }
+    }, [value]);
+
+    return html`
+      <div className="flex flex-col items-center">
+        <div className="relative overflow-hidden px-1 sm:px-2">
+          <!-- Invisible static spacer preserving exact width/height -->
+          <span
+            className="block invisible font-display font-extrabold tabular-nums tracking-tight leading-[0.92] select-none"
+            style=${{ fontSize: 'clamp(3.25rem, 11vw, 9.5rem)' }}
+            aria-hidden="true"
+          >
+            ${transition.current}
+          </span>
+
+          <!-- Outgoing previous digit sliding up -->
+          ${transition.previous !== null &&
+          html`
+            <span
+              key=${`out-${transition.tick}`}
+              className="animate-digit-out absolute inset-0 flex items-center justify-center font-display font-extrabold tabular-nums tracking-tight leading-[0.92] text-[#F5F7FA] pointer-events-none"
+              style=${{ fontSize: 'clamp(3.25rem, 11vw, 9.5rem)' }}
+              aria-hidden="true"
+            >
+              ${transition.previous}
+            </span>
+          `}
+
+          <!-- Incoming current digit sliding in from below -->
+          <span
+            key=${`in-${transition.tick}`}
+            className=${`${
+              transition.tick > 0 ? 'animate-digit-in' : ''
+            } absolute inset-0 flex items-center justify-center font-display font-extrabold tabular-nums tracking-tight leading-[0.92] text-[#F5F7FA]`}
+            style=${{ fontSize: 'clamp(3.25rem, 11vw, 9.5rem)' }}
+          >
+            ${transition.current}
+          </span>
+
+          <!-- Subtle 1px stadium split-flap horizontal seam across middle of numbers -->
+          <div
+            className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#07080A]/75 border-b border-white/[0.1]"
+            aria-hidden="true"
+          />
+        </div>
+
+        <span className="mt-2 sm:mt-3 text-[10px] sm:text-xs font-medium tracking-[0.25em] uppercase text-[#8B95A5]">
+          ${label}
+        </span>
+      </div>
+    `;
   }
 
   function OpeningHeroSection({ supporter }) {
@@ -210,23 +280,22 @@
       <section
         id="topo"
         ref=${sectionRef}
-        className="relative min-h-screen flex flex-col justify-between overflow-hidden bg-[#07080A] pt-28"
+        className="relative min-h-screen flex flex-col justify-between overflow-hidden bg-[#07080A] pt-24"
       >
-        <!-- Subtle Night Stadium Atmospheric Vignette -->
+        <!-- Subtle Atmospheric Gre-Nal Split Glow Behind Scoreboard (~12% opacity) -->
         <div
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-y-0 left-0 w-1/2 opacity-[0.12] blur-[140px]"
           style=${{
-            background:
-              'radial-gradient(ellipse 70% 55% at 50% 42%, rgba(255,255,255,0.045) 0%, rgba(13,16,21,0.35) 55%, rgba(7,8,10,1) 100%)',
+            background: 'radial-gradient(circle at 38% 48%, #0099FF 0%, transparent 65%)',
           }}
+          aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -top-24 -left-24 w-[420px] h-[420px] rounded-full blur-[160px] opacity-[0.09]"
-          style=${{ background: 'radial-gradient(circle, #E6192E 0%, transparent 70%)' }}
-        />
-        <div
-          className="pointer-events-none absolute -bottom-16 -right-24 w-[420px] h-[420px] rounded-full blur-[160px] opacity-[0.09]"
-          style=${{ background: 'radial-gradient(circle, #0099FF 0%, transparent 70%)' }}
+          className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-[0.12] blur-[140px]"
+          style=${{
+            background: 'radial-gradient(circle at 62% 48%, #E6192E 0%, transparent 65%)',
+          }}
+          aria-hidden="true"
         />
 
         <!-- Interactive Particle Canvas -->
@@ -236,77 +305,76 @@
           aria-hidden="true"
         />
 
-        <!-- Centerpiece: 3 Giant Horizontal Words ("Motion. Discipline. Result." equivalent) -->
-        <div className="relative z-10 flex-1 flex items-center w-full max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-10">
-          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 items-start">
-            <!-- Word 1 -->
-            <div className="text-left">
-              <h1 className="font-display font-bold tracking-tight leading-[0.95] text-5xl sm:text-6xl xl:text-[5.25rem] text-[#F5F7FA]">
-                Rivalidade.
-              </h1>
-              <p className="mt-4 text-sm sm:text-base text-[#8B95A5] leading-relaxed max-w-[260px]">
-                Gre-Nal fora das quatro linhas. Onde cada quilo pesa na tabela da zoeira.
-              </p>
-            </div>
-
-            <!-- Word 2 -->
-            <div className="text-left md:text-center">
-              <div
-                className="font-display font-bold tracking-tight leading-[0.95] text-5xl sm:text-6xl xl:text-[5.25rem] transition-colors duration-300"
-                style=${{ color: accentColor }}
-              >
-                Sujeira.
-              </div>
-              <p className="mt-4 text-sm sm:text-base text-[#8B95A5] leading-relaxed max-w-[260px] md:mx-auto">
-                Lixo não é bonito. Mas fica ótimo no estádio do teu rival.
-              </p>
-            </div>
-
-            <!-- Word 3 -->
-            <div className="text-left md:text-right">
-              <div className="font-display font-bold tracking-tight leading-[0.95] text-5xl sm:text-6xl xl:text-[5.25rem] text-[#F5F7FA]">
-                Guaíba.
-              </div>
-              <p className="mt-4 text-sm sm:text-base text-[#8B95A5] leading-relaxed max-w-[260px] md:ml-auto">
-                Todo outubro em Porto Alegre. Tire das ruas antes que chegue às águas.
-              </p>
-            </div>
+        <!-- Centered Monumental Stadium Scoreboard -->
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 py-12 text-center animate-scoreboard-on">
+          <!-- Eyebrow -->
+          <div className="inline-flex items-center gap-2.5 mb-8 sm:mb-10">
+            <span className="relative flex h-2 w-2">
+              <span
+                className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                style=${{ backgroundColor: accentColor }}
+              />
+              <span
+                className="relative inline-flex rounded-full h-2 w-2"
+                style=${{ backgroundColor: accentColor }}
+              />
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold tracking-[0.26em] uppercase text-[#8B95A5]">
+              ${countdown.eyebrow}
+            </span>
           </div>
-        </div>
 
-        <!-- Bottom Row: Compact Translucent Countdown (Left) + Editorial Arrow CTA (Right) -->
-        <div className="relative z-10 w-full max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 pb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <!-- Compact Translucent Countdown Widget -->
+          <!-- Giant Monumental Scoreboard Countdown (2x2 on narrow mobile, horizontal row on sm+) -->
           <div
             role="timer"
             aria-live="off"
-            className="inline-flex flex-col gap-1.5 px-4 py-3 rounded-lg backdrop-blur-md bg-white/[0.04] border border-white/[0.1] self-start"
+            aria-label="Contagem regressiva para o evento Jogando Sujo em outubro"
+            className="relative w-full flex flex-col items-center"
           >
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:flex sm:items-start sm:justify-center sm:gap-x-3 md:gap-x-5 lg:gap-x-7">
+              <${ScoreboardBlock} value=${countdown.days} label="DIAS" />
+
               <span
-                className="w-1.5 h-1.5 rounded-full"
-                style=${{ backgroundColor: accentColor }}
-              />
-              <span className="text-[10px] font-semibold tracking-[0.22em] uppercase text-[#8B95A5]">
-                ${countdown.label}
+                className="hidden sm:block animate-colon-pulse font-display font-bold text-[#8B95A5]/65 leading-[0.86] select-none"
+                style=${{ fontSize: 'clamp(2.75rem, 9vw, 8rem)' }}
+                aria-hidden="true"
+              >
+                :
               </span>
-            </div>
-            <div className="font-display font-bold text-xl sm:text-2xl tracking-[0.12em] text-[#F5F7FA] tabular-nums">
-              ${countdown.formatted}
-            </div>
-            <div className="flex items-center justify-between text-[9px] font-medium tracking-[0.2em] uppercase text-[#8B95A5]/80">
-              <span>DD</span>
-              <span>HH</span>
-              <span>MM</span>
-              <span>SS</span>
+
+              <${ScoreboardBlock} value=${countdown.hours} label="HORAS" />
+
+              <span
+                className="hidden sm:block animate-colon-pulse font-display font-bold text-[#8B95A5]/65 leading-[0.86] select-none"
+                style=${{ fontSize: 'clamp(2.75rem, 9vw, 8rem)' }}
+                aria-hidden="true"
+              >
+                :
+              </span>
+
+              <${ScoreboardBlock} value=${countdown.minutes} label="MIN" />
+
+              <span
+                className="hidden sm:block animate-colon-pulse font-display font-bold text-[#8B95A5]/65 leading-[0.86] select-none"
+                style=${{ fontSize: 'clamp(2.75rem, 9vw, 8rem)' }}
+                aria-hidden="true"
+              >
+                :
+              </span>
+
+              <${ScoreboardBlock} value=${countdown.seconds} label="SEG" />
             </div>
           </div>
 
-          <!-- Editorial Underlined CTA -->
+          <!-- Single-Line Subtitle + Clean Underlined CTA -->
+          <p className="mt-10 sm:mt-12 text-sm sm:text-lg text-[#8B95A5] max-w-2xl leading-relaxed">
+            A contagem regressiva para definir o time mais sujo do ano.
+          </p>
+
           <a
             href="#lixeiras-3d"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold tracking-[0.14em] uppercase pb-1 border-b transition-opacity hover:opacity-80 self-start sm:self-end"
-            style=${{ color: accentColor, borderColor: accentColor }}
+            className="mt-7 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold tracking-[0.16em] uppercase pb-1 border-b transition-opacity hover:opacity-80"
+            style=${{ color: '#E6192E', borderColor: '#E6192E' }}
           >
             <span>ESCOLHER MEU RIVAL ↗</span>
           </a>

@@ -90,6 +90,73 @@ body {
   animation: scorePop 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Stadium Scoreboard Power-On Entrance */
+@keyframes scoreboardPowerOn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  35% {
+    opacity: 0.72;
+  }
+  52% {
+    opacity: 0.38;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scoreboard-on {
+  animation: scoreboardPowerOn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Smooth Split-Flap / Vertical Roll Digit Transitions (280ms ease-out) */
+@keyframes digitFlipIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0%);
+  }
+}
+
+@keyframes digitFlipOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20%);
+  }
+}
+
+.animate-digit-in {
+  animation: digitFlipIn 280ms ease-out forwards;
+}
+
+.animate-digit-out {
+  animation: digitFlipOut 280ms ease-out forwards;
+}
+
+/* Scoreboard Colon Rhythm Pulse */
+@keyframes colonPulse {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+.animate-colon-pulse {
+  animation: colonPulse 1s ease-in-out infinite;
+}
+
 /* Accessible Focus Rings */
 :focus-visible {
   outline: 1.5px solid #0099ff;
@@ -101,7 +168,11 @@ body {
     scroll-behavior: auto;
   }
   .animate-marquee,
-  .animate-score-pop {
+  .animate-score-pop,
+  .animate-scoreboard-on,
+  .animate-digit-in,
+  .animate-digit-out,
+  .animate-colon-pulse {
     animation: none !important;
   }
 }
