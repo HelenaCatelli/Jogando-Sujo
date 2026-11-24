@@ -66,7 +66,7 @@
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             <div className="flex items-center gap-2.5">
               <img
-                src="./logo-jogando-sujo.png"
+                src="./logo-jogando-sujo.PNG"
                 alt="Logo Jogando Sujo"
                 className="h-7 w-auto object-contain brightness-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
               />

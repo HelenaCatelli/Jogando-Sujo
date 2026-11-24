@@ -73,7 +73,7 @@
                 aria-label="Jogando Sujo — Voltar ao topo"
               >
                 <img
-                  src="./logo-jogando-sujo.png"
+                  src="./logo-jogando-sujo.PNG"
                   alt="Logo Jogando Sujo"
                   className="h-7 w-auto object-contain brightness-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
                 />
@@ -91,7 +91,7 @@
                 aria-label="Jogando Sujo"
               >
                 <img
-                  src="./logo-jogando-sujo.png"
+                  src="./logo-jogando-sujo.PNG"
                   alt="Logo Jogando Sujo"
                   className="h-7 w-auto object-contain brightness-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
                 />

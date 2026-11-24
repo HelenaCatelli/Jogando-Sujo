@@ -37,7 +37,7 @@ O projeto utiliza arquitetura **estática zero-build** (sem necessidade de bundl
 .
 ├── index.html                   # Entrada principal, importmap do Three.js e carregamento dos módulos
 ├── App.js                       # Componente raiz, estado global (supporter, scores, toast, modal)
-├── logo-jogando-sujo.png        # Marca oficial usada na Navbar, rodapé e favicon
+├── logo-jogando-sujo.PNG        # Marca oficial usada na Navbar, rodapé e favicon
 ├── lixo-scroll.mp4              # Vídeo de fundo da seção editorial com scroll
 ├── styles/
 │   └── theme.css                # Animações split-flap, cards 3D do placar e estilos customizados
@@ -88,7 +88,7 @@ Como não há backend nem build step, o deploy pode ser feito diretamente como s
 - **Build Command:** *(vazio)*
 - **Output Directory:** `.` *(raiz do repositório)*
 
-> Certifique-se de enviar todos os arquivos e pastas na raiz do repositório (`index.html`, `App.js`, `components/`, `data/`, `styles/`, `utils/`, `logo-jogando-sujo.png` e `lixo-scroll.mp4`).
+> Certifique-se de enviar todos os arquivos e pastas na raiz do repositório (`index.html`, `App.js`, `components/`, `data/`, `styles/`, `utils/`, `logo-jogando-sujo.PNG` e `lixo-scroll.mp4`).
 
 ---
 
