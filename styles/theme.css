@@ -227,6 +227,57 @@ body {
   animation: flapBottomShade 225ms ease-out 225ms forwards;
 }
 
+/* 3D Perspective Scoreboard Cards (Desktop 3D stage, clean stack on mobile) */
+@media (min-width: 1024px) {
+  .scoreboard-stage-3d {
+    perspective: 1200px;
+  }
+
+  .scoreboard-card-3d {
+    position: relative;
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      flex-basis 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      flex-grow 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.4s ease,
+      box-shadow 0.4s ease;
+    will-change: transform, opacity, flex-basis;
+  }
+
+  .scoreboard-card-primary {
+    flex: 1.62 1 0%;
+    transform: translate3d(0, 0, 0) rotateY(0deg) scale(1);
+    opacity: 1;
+    z-index: 20;
+  }
+
+  .scoreboard-card-secondary-right {
+    flex: 1 1 0%;
+    transform: translate3d(0, 0, -90px) rotateY(-18deg) scale(0.86);
+    opacity: 0.65;
+    z-index: 15;
+    pointer-events: auto;
+  }
+
+  .scoreboard-card-secondary-right:hover {
+    transform: translate3d(0, 0, -50px) rotateY(-10deg) scale(0.9);
+    opacity: 0.9;
+  }
+
+  .scoreboard-card-secondary-left {
+    flex: 1 1 0%;
+    transform: translate3d(0, 0, -90px) rotateY(18deg) scale(0.86);
+    opacity: 0.65;
+    z-index: 15;
+    pointer-events: auto;
+  }
+
+  .scoreboard-card-secondary-left:hover {
+    transform: translate3d(0, 0, -50px) rotateY(10deg) scale(0.9);
+    opacity: 0.9;
+  }
+}
+
 /* Accessible Focus Rings */
 :focus-visible {
   outline: 1.5px solid #0099ff;

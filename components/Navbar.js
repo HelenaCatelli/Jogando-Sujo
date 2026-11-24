@@ -3,7 +3,7 @@
 (function () {
   const html = window.htm.bind(React.createElement);
   const { useState, useEffect } = React;
-  const { Icon, DotMatrixIcon } = window.AppIcons;
+  const { Icon } = window.AppIcons;
 
   const NAV_LINKS = [
     { href: '#calendario', label: 'Calendário' },
@@ -12,7 +12,7 @@
     { href: '#sobre-o-projeto', label: 'Sobre' },
   ];
 
-  function Navbar({ supporter, onOpenReceipt }) {
+  function Navbar({ supporter, onToggleSupporter, onOpenReceipt }) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -25,7 +25,8 @@
       return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
-    const accentHex = supporter === 'colorado' ? '#E6192E' : '#0099FF';
+    const isColorado = supporter === 'colorado';
+    const accentHex = isColorado ? '#E6222C' : '#0095FF';
 
     return html`
       <header
@@ -64,32 +65,60 @@
               </nav>
             </div>
 
-            <!-- Center: Dot-Matrix Mark + JOGANDO SUJO -->
+            <!-- Center: Brand Logo + JOGANDO SUJO -->
             <div className="hidden lg:flex justify-center">
               <a
                 href="#topo"
                 className="inline-flex items-center gap-2.5 text-[#F5F7FA] hover:opacity-85 transition-opacity"
                 aria-label="Jogando Sujo — Voltar ao topo"
               >
-                <${DotMatrixIcon} className="w-4 h-4 text-[#F5F7FA]" accent=${accentHex} />
+                <img
+                  src="./logo-jogando-sujo.png"
+                  alt="Logo Jogando Sujo"
+                  className="h-7 w-auto object-contain brightness-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
+                />
                 <span className="font-display font-bold tracking-[0.18em] text-sm uppercase">
                   JOGANDO SUJO
                 </span>
               </a>
             </div>
 
-            <!-- Right: Clean Editorial Arrow Link -->
-            <div className="flex items-center justify-end gap-4">
+            <!-- Right: Quick Supporter Toggle Pill + Clean Editorial Arrow Link -->
+            <div className="flex items-center justify-end gap-3 sm:gap-4">
               <a
                 href="#topo"
-                className="lg:hidden inline-flex items-center gap-2 text-[#F5F7FA] mr-auto"
+                className="lg:hidden inline-flex items-center gap-2.5 text-[#F5F7FA] mr-auto"
                 aria-label="Jogando Sujo"
               >
-                <${DotMatrixIcon} className="w-3.5 h-3.5" accent=${accentHex} />
-                <span className="font-display font-bold tracking-[0.14em] text-xs uppercase">
+                <img
+                  src="./logo-jogando-sujo.png"
+                  alt="Logo Jogando Sujo"
+                  className="h-7 w-auto object-contain brightness-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
+                />
+                <span className="font-display font-bold tracking-[0.14em] text-xs uppercase hidden sm:inline">
                   JOGANDO SUJO
                 </span>
               </a>
+
+              <button
+                type="button"
+                onClick=${onToggleSupporter}
+                aria-label="Alternar torcida entre Grêmio e Internacional"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border text-[10px] sm:text-[11px] font-bold tracking-[0.12em] uppercase text-[#F5F7FA] transition-all cursor-pointer whitespace-nowrap"
+                style=${{
+                  borderColor: isColorado ? 'rgba(230, 34, 44, 0.55)' : 'rgba(0, 149, 255, 0.55)',
+                  boxShadow: isColorado
+                    ? '0 0 16px -6px rgba(230, 34, 44, 0.45)'
+                    : '0 0 16px -6px rgba(0, 149, 255, 0.45)',
+                }}
+              >
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style=${{ backgroundColor: accentHex }}
+                />
+                <span>${isColorado ? 'SOU COLORADO' : 'SOU GREMISTA'}</span>
+                <span className="text-[#8B95A5] text-xs leading-none" aria-hidden="true">⇄</span>
+              </button>
 
               <button
                 type="button"

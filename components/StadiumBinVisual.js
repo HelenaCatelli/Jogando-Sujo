@@ -21,6 +21,11 @@
     const clone = sourceGroup.clone(true);
     clone.position.set(0, 0, 0);
     clone.scale.set(1, 1, 1);
+    clone.traverse((obj) => {
+      if (obj.userData && obj.userData.receiptMeta) {
+        obj.visible = false;
+      }
+    });
 
     if (format === 'stl') {
       // STL / CAD / 3D slicers expect Z-up: rotate +90deg around X from Y-up
@@ -87,6 +92,7 @@
     const sceneCtxRef = useRef(null);
     const binGroupRef = useRef(null);
     const dropAnimRef = useRef(null);
+    const cameraTweenRef = useRef(null);
     const scoresRef = useRef(scores);
 
     useEffect(() => {
@@ -148,9 +154,9 @@
       roomEnv.dispose();
       pmremGenerator.dispose();
 
-      // FOV 34 product camera slightly elevated looking cleanly at center (~0.74)
+      // FOV 34 product camera slightly elevated & backed out so floor ring clears bottom buttons
       const camera = new THREE.PerspectiveCamera(34, width / height, 0.1, 100);
-      camera.position.set(1.85, 2.2, 3.4);
+      camera.position.set(1.98, 2.34, 3.68);
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
@@ -161,8 +167,13 @@
       controls.autoRotateSpeed = 0.9;
       controls.minPolarAngle = 0.3;
       controls.maxPolarAngle = Math.PI / 2 + 0.06;
-      controls.target.set(0, 0.74, 0);
+      controls.target.set(0, 0.58, 0);
       controls.update();
+
+      const onControlStart = () => {
+        cameraTweenRef.current = null;
+      };
+      controls.addEventListener('start', onControlStart);
 
       // Dark Editorial Photographic Studio Rig (high contrast, crisp silhouettes, LED bounce)
       const keyLight = new THREE.DirectionalLight(0xfff6ee, 2.6);
@@ -206,7 +217,7 @@
       shadowGround.receiveShadow = true;
       scene.add(shadowGround);
 
-      const floorRingGeo = new THREE.RingGeometry(1.12, 1.15, 64);
+      const floorRingGeo = new THREE.RingGeometry(0.86, 0.89, 64);
       floorRingGeo.rotateX(-Math.PI / 2);
       const floorRingMat = new THREE.MeshBasicMaterial({
         color: 0x0095ff,
@@ -244,9 +255,49 @@
       let frameId = null;
       const clock = new THREE.Clock();
 
+      function resetReceiptAndLeds(group) {
+        if (!group || !group.userData) return;
+        const receipt = group.userData.receiptMesh;
+        if (receipt) {
+          receipt.visible = false;
+          receipt.material.opacity = 1;
+          receipt.rotation.set(0, 0, 0);
+          if (receipt.userData.receiptMeta) {
+            receipt.position.set(0, receipt.userData.receiptMeta.baseY, receipt.userData.receiptMeta.baseZ);
+          }
+          if (window.BinModels3D && window.BinModels3D.applyReceiptPrintPose) {
+            window.BinModels3D.applyReceiptPrintPose(receipt, 0, 0, 0);
+          }
+        }
+        if (group.userData.ledMeshes) {
+          group.userData.ledMeshes.forEach((m) => {
+            m.material.emissiveIntensity = m.userData.baseEmissive || 1.4;
+          });
+        }
+        if (group.userData.slotLedMeshes) {
+          group.userData.slotLedMeshes.forEach((m) => {
+            m.material.emissiveIntensity =
+              m.userData.baseEmissive !== undefined ? m.userData.baseEmissive : 0.18;
+          });
+        }
+      }
+
       function animate() {
         frameId = requestAnimationFrame(animate);
         const dt = Math.min(clock.getDelta(), 0.05);
+
+        // Smooth camera auto-framing tween to front three-quarter view when printing triggers
+        if (cameraTweenRef.current && cameraTweenRef.current.active) {
+          const tween = cameraTweenRef.current;
+          tween.elapsed += dt;
+          const u = Math.min(tween.elapsed / tween.duration, 1);
+          const ease = 1 - Math.pow(1 - u, 3);
+          camera.position.lerpVectors(tween.startPos, tween.endPos, ease);
+          controls.target.lerpVectors(tween.startTarget, tween.endTarget, ease);
+          if (u >= 1) {
+            cameraTweenRef.current = null;
+          }
+        }
 
         if (dropAnimRef.current) {
           const anim = dropAnimRef.current;
@@ -265,43 +316,81 @@
             }
           }
 
-          // 2. Brief receipt slide out & back inside clean slot after impact
-          if (progress >= 0.72) {
+          // 2. Thermal receipt printing -> pendular sway -> gentle release/fade
+          if (progress >= 0.7) {
             anim.fxElapsed += dt;
-            const fxDuration = 1.1;
-            const fxT = Math.min(anim.fxElapsed / fxDuration, 1);
+            const printDur = 0.65;
+            const swayDur = 1.75;
+            const fadeDur = 0.65;
+            const totalFxDur = printDur + swayDur + fadeDur;
             const activeGroup = binGroupRef.current;
 
             if (activeGroup && activeGroup.userData) {
-              if (activeGroup.userData.receiptMesh && activeGroup.userData.receiptBasePos) {
-                const receipt = activeGroup.userData.receiptMesh;
-                const basePos = activeGroup.userData.receiptBasePos;
+              const receipt = activeGroup.userData.receiptMesh;
+              const basePos = activeGroup.userData.receiptBasePos;
+
+              if (receipt && basePos) {
                 receipt.visible = true;
-                const slideCurve = Math.sin(fxT * Math.PI);
-                receipt.position.z = basePos.z - 0.03 + slideCurve * 0.075;
-                receipt.position.y = basePos.y - slideCurve * 0.035;
+
+                if (anim.fxElapsed <= printDur) {
+                  // Phase A: Progressive thermal printing with outward curl
+                  const p = Math.min(anim.fxElapsed / printDur, 1);
+                  const easedPrint = 1 - Math.pow(1 - p, 2.2);
+                  receipt.material.opacity = 1;
+                  receipt.position.set(0, basePos.y, basePos.z);
+                  receipt.rotation.set(0, 0, Math.sin(p * Math.PI * 5) * 0.008);
+                  if (window.BinModels3D && window.BinModels3D.applyReceiptPrintPose) {
+                    window.BinModels3D.applyReceiptPrintPose(receipt, easedPrint, anim.fxElapsed, 0.005);
+                  }
+                } else if (anim.fxElapsed <= printDur + swayDur) {
+                  // Phase B: Printed receipt hangs with natural damped pendular sway
+                  const sT = anim.fxElapsed - printDur;
+                  const decay = Math.exp(-sT * 1.15);
+                  const swayZ = Math.sin(sT * 3.8) * 0.028 * decay;
+                  receipt.material.opacity = 1;
+                  receipt.position.set(0, basePos.y, basePos.z);
+                  receipt.rotation.set(0, 0, swayZ);
+                  if (window.BinModels3D && window.BinModels3D.applyReceiptPrintPose) {
+                    window.BinModels3D.applyReceiptPrintPose(receipt, 1, anim.fxElapsed, 0.016 * decay);
+                  }
+                } else {
+                  // Phase C: Gentle detachment drop & opacity fade out
+                  const fT = Math.min((anim.fxElapsed - printDur - swayDur) / fadeDur, 1);
+                  const fallEase = fT * fT;
+                  receipt.material.opacity = Math.max(0, 1 - Math.pow(fT, 1.3));
+                  receipt.position.set(0, basePos.y - fallEase * 0.24, basePos.z + fallEase * 0.05);
+                  receipt.rotation.set(fallEase * 0.16, 0, 0);
+                  if (window.BinModels3D && window.BinModels3D.applyReceiptPrintPose) {
+                    window.BinModels3D.applyReceiptPrintPose(receipt, 1, anim.fxElapsed, 0.004);
+                  }
+                }
+              }
+
+              // Subtle slot LED flash at print start + stadium body LED pulse
+              if (activeGroup.userData.slotLedMeshes) {
+                const slotFlash =
+                  anim.fxElapsed < 0.7
+                    ? Math.sin((anim.fxElapsed / 0.7) * Math.PI) * 1.65
+                    : 0;
+                activeGroup.userData.slotLedMeshes.forEach((m) => {
+                  const baseE = m.userData.baseEmissive !== undefined ? m.userData.baseEmissive : 0.18;
+                  m.material.emissiveIntensity = baseE + slotFlash;
+                });
               }
 
               if (activeGroup.userData.ledMeshes) {
-                const pulseBoost = 1 + Math.sin(fxT * Math.PI) * 0.4;
+                const pulseEnvelope =
+                  anim.fxElapsed < 1.1 ? Math.sin((anim.fxElapsed / 1.1) * Math.PI) * 0.45 : 0;
                 activeGroup.userData.ledMeshes.forEach((m) => {
                   const baseE = m.userData.baseEmissive || 1.4;
-                  m.material.emissiveIntensity = baseE * pulseBoost;
+                  m.material.emissiveIntensity = baseE * (1 + pulseEnvelope);
                 });
               }
             }
 
-            if (fxT >= 1) {
-              if (activeGroup && activeGroup.userData) {
-                if (activeGroup.userData.receiptMesh) {
-                  activeGroup.userData.receiptMesh.visible = false;
-                }
-                if (activeGroup.userData.ledMeshes) {
-                  activeGroup.userData.ledMeshes.forEach((m) => {
-                    m.material.emissiveIntensity = m.userData.baseEmissive || 1.4;
-                  });
-                }
-              }
+            if (anim.fxElapsed >= totalFxDur) {
+              resetReceiptAndLeds(activeGroup);
+              controls.autoRotate = true;
               dropAnimRef.current = null;
             }
           }
@@ -315,6 +404,7 @@
 
       return () => {
         if (frameId) cancelAnimationFrame(frameId);
+        controls.removeEventListener('start', onControlStart);
         resizeObserver.disconnect();
         controls.dispose();
         envRenderTarget.dispose();
@@ -327,7 +417,13 @@
     useEffect(() => {
       if (!threeReady || !sceneCtxRef.current || !window.BinModels3D) return;
       const { THREE } = window.ThreeKit;
-      const { scene, ledBounceA, ledBounceB, floorRingMat } = sceneCtxRef.current;
+      const { scene, controls, ledBounceA, ledBounceB, floorRingMat } = sceneCtxRef.current;
+
+      if (dropAnimRef.current && dropAnimRef.current.mesh && !dropAnimRef.current.canRemoved) {
+        scene.remove(dropAnimRef.current.mesh);
+      }
+      dropAnimRef.current = null;
+      controls.autoRotate = true;
 
       if (binGroupRef.current) {
         scene.remove(binGroupRef.current);
@@ -356,15 +452,45 @@
       window.BinModels3D.updateBinScreenWeight(binGroupRef.current, scores[activeBin]);
     }, [threeReady, activeBin, scores]);
 
-    // Trigger 3D falling recyclable + brief receipt slide animation
+    // Trigger 3D falling recyclable + auto-frame camera + thermal receipt print animation
     useEffect(() => {
       if (!dropTrigger || !threeReady || !sceneCtxRef.current || !window.BinModels3D) return;
       const { THREE } = window.ThreeKit;
-      const { scene } = sceneCtxRef.current;
+      const { scene, camera, controls } = sceneCtxRef.current;
 
       if (dropAnimRef.current && dropAnimRef.current.mesh && !dropAnimRef.current.canRemoved) {
         scene.remove(dropAnimRef.current.mesh);
       }
+
+      // Reset prior receipt pose immediately on rapid repeat clicks
+      if (binGroupRef.current && binGroupRef.current.userData && binGroupRef.current.userData.receiptMesh) {
+        const prevReceipt = binGroupRef.current.userData.receiptMesh;
+        prevReceipt.visible = false;
+        prevReceipt.material.opacity = 1;
+        prevReceipt.rotation.set(0, 0, 0);
+        if (prevReceipt.userData.receiptMeta) {
+          prevReceipt.position.set(
+            0,
+            prevReceipt.userData.receiptMeta.baseY,
+            prevReceipt.userData.receiptMeta.baseZ
+          );
+        }
+        if (window.BinModels3D.applyReceiptPrintPose) {
+          window.BinModels3D.applyReceiptPrintPose(prevReceipt, 0, 0, 0);
+        }
+      }
+
+      // Auto-frame camera smoothly back to front/three-quarter view so console & receipt are visible
+      controls.autoRotate = false;
+      cameraTweenRef.current = {
+        active: true,
+        elapsed: 0,
+        duration: 0.5,
+        startPos: camera.position.clone(),
+        endPos: new THREE.Vector3(1.52, 2.12, 3.88),
+        startTarget: controls.target.clone(),
+        endTarget: new THREE.Vector3(0, 0.58, 0),
+      };
 
       const accent = activeBin === 'gremio' ? 0x0099ff : 0xe6192e;
       const dropMesh = window.BinModels3D.createDropItemGroup(THREE, accent);
@@ -376,7 +502,7 @@
         startY: 2.75,
         endY: 1.16,
         elapsed: 0,
-        duration: 0.5,
+        duration: 0.45,
         canRemoved: false,
         fxElapsed: 0,
       };
@@ -386,13 +512,28 @@
 
     return html`
       <div className="relative w-full">
-        <!-- Subtle ambient stadium halo behind floating 3D object (zero border/box) -->
+        <!-- Wide, soft atmospheric radial studio backdrop (graphite core + team tint fading cleanly to transparent) -->
         <div
-          className="pointer-events-none absolute inset-12 rounded-full blur-[120px] opacity-20 transition-all duration-700"
+          className="pointer-events-none absolute -inset-16 sm:-inset-24"
           style=${{
-            background: isArena
-              ? 'radial-gradient(circle, rgba(0, 153, 255, 0.5) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(230, 25, 46, 0.5) 0%, transparent 70%)'
+            background:
+              'radial-gradient(ellipse 68% 62% at 50% 48%, rgba(20, 24, 32, 0.92) 0%, rgba(20, 24, 32, 0.42) 44%, rgba(7, 8, 10, 0) 74%)',
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -inset-16 sm:-inset-24 transition-opacity duration-[600ms] ease-out"
+          style=${{
+            opacity: isArena ? 1 : 0,
+            background:
+              'radial-gradient(ellipse 60% 56% at 50% 46%, rgba(0, 149, 255, 0.19) 0%, rgba(0, 149, 255, 0.08) 38%, rgba(0, 149, 255, 0) 72%)',
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -inset-16 sm:-inset-24 transition-opacity duration-[600ms] ease-out"
+          style=${{
+            opacity: !isArena ? 1 : 0,
+            background:
+              'radial-gradient(ellipse 60% 56% at 50% 46%, rgba(230, 34, 44, 0.19) 0%, rgba(230, 34, 44, 0.08) 38%, rgba(230, 34, 44, 0) 72%)',
           }}
         />
 

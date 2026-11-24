@@ -195,38 +195,81 @@
   function createReceiptTexture(THREE, accentHex) {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
-    canvas.height = 300;
+    canvas.height = 396;
     const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#F1F5F9';
+    // Crisp thermal paper white
+    ctx.fillStyle = '#f5f6f8';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = accentHex;
-    ctx.fillStyle = accentHex;
-    ctx.lineWidth = 6;
+    // Subtle paper edge shading
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.08)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+    // Top perforated thermal header
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
     ctx.beginPath();
-    ctx.arc(128, 52, 24, 0, Math.PI * 2);
+    ctx.moveTo(20, 26);
+    ctx.lineTo(canvas.width - 20, 26);
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    ctx.fillStyle = '#0F172A';
-    ctx.font = 'bold 40px sans-serif';
+    // Brand Header
+    ctx.fillStyle = '#0a0c10';
+    ctx.font = '800 22px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('1,00 kg', 128, 126);
+    ctx.fillText('JOGANDO SUJO', 128, 66);
 
+    ctx.fillStyle = '#64748b';
+    ctx.font = '600 11px sans-serif';
+    ctx.fillText('RECIBO DE DESCARTE', 128, 88);
+
+    // Team accent hairline divider
     ctx.fillStyle = accentHex;
-    ctx.font = 'bold 24px sans-serif';
-    ctx.fillText('+10 PONTOS', 128, 168);
+    ctx.fillRect(46, 106, 164, 3);
 
-    ctx.fillStyle = '#0F172A';
-    const bars = [4, 2, 6, 2, 3, 5, 2, 4, 2, 6, 3, 2, 5, 2, 4, 3, 6, 2];
-    let bx = 38;
+    // Main weight
+    ctx.fillStyle = '#0a0c10';
+    ctx.font = '800 42px sans-serif';
+    ctx.fillText('+1,00 kg', 128, 174);
+
+    // Points line
+    ctx.fillStyle = accentHex;
+    ctx.font = '800 23px sans-serif';
+    ctx.fillText('+10 PONTOS', 128, 218);
+
+    // Subtle separator above barcode
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(24, 250);
+    ctx.lineTo(canvas.width - 24, 250);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Minimalist crisp black barcode at the bottom
+    ctx.fillStyle = '#0a0c10';
+    const bars = [3, 2, 5, 1, 2, 4, 2, 3, 1, 5, 2, 2, 4, 1, 3, 2, 5, 2, 3, 1, 4, 2];
+    const totalUnits = bars.reduce((acc, w) => acc + w, 0);
+    const barScale = 176 / totalUnits;
+    let bx = 40;
     bars.forEach((w, idx) => {
-      if (idx % 2 === 0) ctx.fillRect(bx, 206, w * 2, 62);
-      bx += w * 2.4;
+      const bw = w * barScale;
+      if (idx % 2 === 0) ctx.fillRect(bx, 276, bw, 68);
+      bx += bw;
     });
+
+    ctx.fillStyle = '#475569';
+    ctx.font = '600 11px monospace';
+    ctx.fillText('0100-JS-POA-2026', 128, 366);
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
     tex.needsUpdate = true;
     return tex;
   }
@@ -380,38 +423,60 @@
     }
 
     const frontZ = config.zFront + 0.027;
+    const slotY = config.baseY + config.height - 0.125;
+    const slotLedMeshes = [];
 
     if (config.slotBorderHex) {
+      const baseSlotEmissive =
+        config.slotEmissiveIntensity !== undefined ? config.slotEmissiveIntensity : 0.18;
       const slotFrameMat = new THREE.MeshStandardMaterial({
         color: config.slotBorderHex,
-        emissive: config.slotEmissiveHex || 0x000000,
-        emissiveIntensity: config.slotEmissiveIntensity || 0,
+        emissive: config.slotEmissiveHex || config.slotBorderHex,
+        emissiveIntensity: baseSlotEmissive,
         roughness: 0.32,
         metalness: 0.25,
       });
       const slotFrame = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.056, 0.018), slotFrameMat);
-      slotFrame.position.set(0, config.baseY + config.height - 0.125, frontZ - 0.002);
+      slotFrame.position.set(0, slotY, frontZ - 0.002);
       slotFrame.userData.envMapIntensity = 0.5;
+      slotFrame.userData.isNeonLed = true;
+      slotFrame.userData.baseEmissive = baseSlotEmissive;
+      slotLedMeshes.push(slotFrame);
       consoleGroup.add(slotFrame);
     }
 
     const slotRecess = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.03, 0.022), recessMat);
-    slotRecess.position.set(0, config.baseY + config.height - 0.125, frontZ + 0.002);
+    slotRecess.position.set(0, slotY, frontZ + 0.002);
     slotRecess.userData.envMapIntensity = 0.3;
     consoleGroup.add(slotRecess);
 
+    const receiptW = 0.22;
+    const receiptH = 0.34;
+    const receiptSegsY = 18;
+    const receiptGeo = new THREE.PlaneGeometry(receiptW, receiptH, 1, receiptSegsY);
     const receiptTex = createReceiptTexture(THREE, config.screenAccent);
     const receiptMat = new THREE.MeshStandardMaterial({
       map: receiptTex,
-      roughness: 0.8,
-      metalness: 0.04,
+      roughness: 0.78,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 1,
       side: THREE.DoubleSide,
     });
-    const receiptMesh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.19, 0.008), receiptMat);
-    receiptMesh.position.set(0, config.baseY + config.height - 0.125, frontZ - 0.02);
-    receiptMesh.rotation.x = -0.42;
+    const receiptMouthY = slotY - 0.002;
+    const receiptMouthZ = frontZ + 0.011;
+    const receiptMesh = new THREE.Mesh(receiptGeo, receiptMat);
+    receiptMesh.position.set(0, receiptMouthY, receiptMouthZ);
     receiptMesh.visible = false;
-    receiptMesh.userData.envMapIntensity = 0.3;
+    receiptMesh.userData.noShadowCast = true;
+    receiptMesh.userData.envMapIntensity = 0.25;
+    receiptMesh.userData.receiptMeta = {
+      width: receiptW,
+      height: receiptH,
+      segsY: receiptSegsY,
+      baseY: receiptMouthY,
+      baseZ: receiptMouthZ,
+    };
     consoleGroup.add(receiptMesh);
 
     const screenW = config.screenW;
@@ -486,9 +551,10 @@
     return {
       consoleGroup,
       receiptMesh,
+      slotLedMeshes,
       receiptBasePos: {
-        y: config.baseY + config.height - 0.16,
-        z: frontZ + 0.045,
+        y: receiptMouthY,
+        z: receiptMouthZ,
       },
       screenState: {
         canvas: screenCanvas,
@@ -496,6 +562,37 @@
         config,
       },
     };
+  }
+
+  function applyReceiptPrintPose(receiptMesh, printProgress, swayTime = 0, swayAmp = 0) {
+    if (!receiptMesh || !receiptMesh.userData || !receiptMesh.userData.receiptMeta) return;
+    const { width, height, segsY } = receiptMesh.userData.receiptMeta;
+    const posAttr = receiptMesh.geometry.attributes.position;
+    const printedLength = Math.max(0, Math.min(1, printProgress)) * height;
+
+    for (let r = 0; r <= segsY; r++) {
+      const posFromTop = (r / segsY) * height;
+      const outDist = Math.max(0, printedLength - (height - posFromTop));
+      const dNorm = outDist / height;
+
+      let y = 0.002;
+      let z = -0.014;
+      if (outDist > 0.0004) {
+        const exitCurl = 0.052 * Math.sin(Math.min(1, outDist / 0.13) * (Math.PI * 0.5));
+        const tipCurl = 0.036 * Math.pow(dNorm, 1.65);
+        const flutter = swayAmp * Math.sin(swayTime * 4.4 - dNorm * 1.6) * Math.pow(dNorm, 1.25);
+        y = -outDist * 0.94 + Math.pow(dNorm, 2) * 0.014;
+        z = exitCurl + tipCurl + flutter;
+      }
+
+      const leftIdx = r * 2;
+      const rightIdx = leftIdx + 1;
+      posAttr.setXYZ(leftIdx, -width * 0.5, y, z);
+      posAttr.setXYZ(rightIdx, width * 0.5, y, z);
+    }
+
+    posAttr.needsUpdate = true;
+    receiptMesh.geometry.computeVertexNormals();
   }
 
   function applyStudioShadowAndEnvStandards(group) {
@@ -826,6 +923,7 @@
     applyStudioShadowAndEnvStandards(group);
 
     group.userData.ledMeshes = ledMeshes;
+    group.userData.slotLedMeshes = consoleRes.slotLedMeshes;
     group.userData.receiptMesh = consoleRes.receiptMesh;
     group.userData.receiptBasePos = consoleRes.receiptBasePos;
     group.userData.screenState = consoleRes.screenState;
@@ -1145,6 +1243,7 @@
     applyStudioShadowAndEnvStandards(group);
 
     group.userData.ledMeshes = ledMeshes;
+    group.userData.slotLedMeshes = consoleRes.slotLedMeshes;
     group.userData.receiptMesh = consoleRes.receiptMesh;
     group.userData.receiptBasePos = consoleRes.receiptBasePos;
     group.userData.screenState = consoleRes.screenState;
@@ -1176,6 +1275,7 @@
     buildArenaBinGroup,
     buildBeiraRioBinGroup,
     updateBinScreenWeight,
+    applyReceiptPrintPose,
     createDropItemGroup,
   };
 })();

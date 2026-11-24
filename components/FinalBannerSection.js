@@ -2,7 +2,7 @@
 
 (function () {
   const html = window.htm.bind(React.createElement);
-  const { StylizedQRCode, DotMatrixIcon } = window.AppIcons;
+  const { StylizedQRCode } = window.AppIcons;
   const { partners } = window.CampaignData;
 
   function FinalBannerSection({ onOpenReceipt }) {
@@ -65,7 +65,11 @@
           <!-- Official Real Event Footer -->
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             <div className="flex items-center gap-2.5">
-              <${DotMatrixIcon} className="w-3.5 h-3.5 text-[#F5F7FA]" />
+              <img
+                src="./logo-jogando-sujo.png"
+                alt="Logo Jogando Sujo"
+                className="h-7 w-auto object-contain brightness-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.18)]"
+              />
               <span className="font-display font-bold text-xs tracking-[0.18em] uppercase text-[#F5F7FA]">
                 JOGANDO SUJO • WWW.JOGANDOSUJO.COM
               </span>

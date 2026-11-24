@@ -52,11 +52,17 @@
       <div className="min-h-screen bg-[#07080A] text-[#F5F7FA] selection:bg-[#0099FF] selection:text-[#07080A]">
         <${Navbar}
           supporter=${supporter}
+          onToggleSupporter=${() =>
+            setSupporter((prev) => (prev === 'colorado' ? 'tricolor' : 'colorado'))
+          }
           onOpenReceipt=${() => setReceiptModalOpen(true)}
         />
 
         <main>
-          <${OpeningHeroSection} supporter=${supporter} />
+          <${OpeningHeroSection}
+            supporter=${supporter}
+            onChangeSupporter=${setSupporter}
+          />
 
           <${ScrollTrashSection} supporter=${supporter} />
 
@@ -68,6 +74,7 @@
           />
 
           <${ScoreboardSection}
+            supporter=${supporter}
             scores=${scores}
             lastBump=${lastBump}
             onAddKg=${handleAddKg}

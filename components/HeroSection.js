@@ -48,43 +48,6 @@
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[78vh]">
             <!-- LEFT (5 Cols): Open Editorial Copy & Controls Directly on Background -->
             <div className="lg:col-span-5 relative z-20">
-              <!-- Minimalist Supporter Line-Tabs -->
-              <div className="flex items-center gap-6 mb-8" role="group" aria-label="Seletor de torcida">
-                <button
-                  type="button"
-                  onClick=${() => onChangeSupporter('colorado')}
-                  aria-pressed=${isColorado}
-                  className=${`relative pb-2 text-xs font-semibold tracking-[0.18em] uppercase transition-colors cursor-pointer ${
-                    isColorado ? 'text-[#F5F7FA]' : 'text-[#8B95A5] hover:text-[#F5F7FA]'
-                  }`}
-                >
-                  <span>SOU COLORADO</span>
-                  <span
-                    className=${`absolute left-0 right-0 bottom-0 h-[2px] transition-opacity ${
-                      isColorado ? 'opacity-100 bg-[#E6192E]' : 'opacity-0'
-                    }`}
-                  />
-                </button>
-
-                <span className="text-white/20 text-xs">/</span>
-
-                <button
-                  type="button"
-                  onClick=${() => onChangeSupporter('tricolor')}
-                  aria-pressed=${!isColorado}
-                  className=${`relative pb-2 text-xs font-semibold tracking-[0.18em] uppercase transition-colors cursor-pointer ${
-                    !isColorado ? 'text-[#F5F7FA]' : 'text-[#8B95A5] hover:text-[#F5F7FA]'
-                  }`}
-                >
-                  <span>SOU TRICOLOR</span>
-                  <span
-                    className=${`absolute left-0 right-0 bottom-0 h-[2px] transition-opacity ${
-                      !isColorado ? 'opacity-100 bg-[#0099FF]' : 'opacity-0'
-                    }`}
-                  />
-                </button>
-              </div>
-
               <!-- Editorial Dot-Matrix Signature -->
               <div className="flex items-center gap-2.5 mb-5">
                 <${DotMatrixIcon} className="w-4 h-4 text-[#F5F7FA]" accent=${rivalColor} />

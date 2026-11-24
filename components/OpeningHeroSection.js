@@ -194,14 +194,14 @@
     `;
   }
 
-  function OpeningHeroSection({ supporter }) {
+  function OpeningHeroSection({ supporter, onChangeSupporter }) {
     const [introStep, setIntroStep] = useState(0);
     const [countdown, setCountdown] = useState(() => computeOctoberCountdown());
     const sectionRef = useRef(null);
     const canvasRef = useRef(null);
 
     const isColorado = supporter === 'colorado';
-    const accentColor = isColorado ? '#E6192E' : '#0099FF';
+    const accentColor = isColorado ? '#E6222C' : '#0095FF';
 
     // Rapid cascade entrance (2 short intro flips before locking onto real October countdown)
     useEffect(() => {
@@ -381,18 +381,22 @@
         ref=${sectionRef}
         className="relative min-h-screen flex flex-col justify-between overflow-hidden bg-[#07080A] pt-24"
       >
-        <!-- Subtle Gre-Nal Split Atmospheric Glow Behind Split-Flap Scoreboard -->
+        <!-- Reactive Team Neon Atmospheric Glow Behind Split-Flap Scoreboard (0.7s smooth crossfade) -->
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-1/2 opacity-[0.11] blur-[140px]"
+          className="pointer-events-none absolute inset-0 blur-[140px]"
           style=${{
-            background: 'radial-gradient(circle at 38% 48%, #0099FF 0%, transparent 65%)',
+            background: 'radial-gradient(ellipse 65% 55% at 50% 46%, #0095FF 0%, transparent 70%)',
+            opacity: isColorado ? 0.04 : 0.24,
+            transition: 'all 0.7s ease',
           }}
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-[0.11] blur-[140px]"
+          className="pointer-events-none absolute inset-0 blur-[140px]"
           style=${{
-            background: 'radial-gradient(circle at 62% 48%, #E6192E 0%, transparent 65%)',
+            background: 'radial-gradient(ellipse 65% 55% at 50% 46%, #E6222C 0%, transparent 70%)',
+            opacity: isColorado ? 0.24 : 0.04,
+            transition: 'all 0.7s ease',
           }}
           aria-hidden="true"
         />
@@ -463,18 +467,43 @@
             <${ScoreboardGroup} valueStr=${displaySeconds} label="SEG" />
           </div>
 
-          <!-- Subtitle & Editorial CTA -->
-          <p className="mt-10 sm:mt-12 text-sm sm:text-lg text-[#8B95A5] max-w-2xl leading-relaxed">
+          <!-- Prominent Team Selection Buttons (SOU GREMISTA / SOU COLORADO) -->
+          <div
+            role="group"
+            aria-label="Escolha seu time na rivalidade"
+            className="mt-9 sm:mt-11 flex flex-wrap items-center justify-center gap-3.5 sm:gap-4"
+          >
+            <button
+              type="button"
+              onClick=${() => onChangeSupporter && onChangeSupporter('tricolor')}
+              aria-pressed=${!isColorado}
+              className=${`px-6 sm:px-7 py-3 rounded-lg font-display font-bold text-xs sm:text-sm tracking-[0.16em] uppercase border transition-all duration-300 cursor-pointer ${
+                !isColorado
+                  ? 'bg-[#0095FF]/20 border-[#0095FF] text-[#F5F7FA] shadow-[0_0_28px_-4px_rgba(0,149,255,0.65)]'
+                  : 'bg-white/[0.02] border-white/[0.14] text-[#8B95A5] hover:text-[#F5F7FA] hover:border-white/30'
+              }`}
+            >
+              SOU GREMISTA
+            </button>
+
+            <button
+              type="button"
+              onClick=${() => onChangeSupporter && onChangeSupporter('colorado')}
+              aria-pressed=${isColorado}
+              className=${`px-6 sm:px-7 py-3 rounded-lg font-display font-bold text-xs sm:text-sm tracking-[0.16em] uppercase border transition-all duration-300 cursor-pointer ${
+                isColorado
+                  ? 'bg-[#E6222C]/20 border-[#E6222C] text-[#F5F7FA] shadow-[0_0_28px_-4px_rgba(230,34,44,0.65)]'
+                  : 'bg-white/[0.02] border-white/[0.14] text-[#8B95A5] hover:text-[#F5F7FA] hover:border-white/30'
+              }`}
+            >
+              SOU COLORADO
+            </button>
+          </div>
+
+          <!-- Subtitle -->
+          <p className="mt-7 text-sm sm:text-lg text-[#8B95A5] max-w-2xl leading-relaxed">
             A contagem regressiva para definir o time mais sujo do ano.
           </p>
-
-          <a
-            href="#lixeiras-3d"
-            className="mt-7 inline-flex items-center gap-2 text-xs sm:text-sm font-semibold tracking-[0.16em] uppercase pb-1 border-b transition-opacity hover:opacity-80"
-            style=${{ color: '#E6192E', borderColor: '#E6192E' }}
-          >
-            <span>ESCOLHER MEU RIVAL ↗</span>
-          </a>
         </div>
 
         <!-- Hero Bottom Infinite Translucent Marquee -->
